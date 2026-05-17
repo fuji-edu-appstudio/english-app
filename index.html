@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Rec Star Premium</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap');
+        body {
+            font-family: 'Kosugi+Maru', sans-serif;
+            background: linear-gradient(-45deg, #ff9a9e 0%, #fecfef 50%, #a1c4fd 100%);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            touch-action: manipulation;
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .fancy-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 6px solid #ffcf00;
+            box-shadow: 0 20px 0px rgba(0, 0, 0, 0.05), inset 0 -8px 0px rgba(0,0,0,0.1);
+        }
+        .push-btn { transition: all 0.1s ease; box-shadow: 0 8px 0px var(--tw-shadow-color); }
+        .push-btn:active { transform: translateY(6px); box-shadow: 0 2px 0px var(--tw-shadow-color); }
+        .record-btn.recording { animation: pulse 1.2s infinite; background-color: #ef4444 !important; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.08); box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); } 100% { transform: scale(1); } }
+        .sparkle { position: absolute; pointer-events: none; animation: fly 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards; z-index: 100; }
+        @keyframes fly { 0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; } 100% { transform: translate(var(--tw-translate-x), var(--tw-translate-y)) scale(0) rotate(360deg); opacity: 0; } }
+    </style>
+</head>
+<body class="min-h-screen p-3 md:p-6 flex items-center justify-center">
+
+    <div id="app" class="fancy-card w-full max-w-xl rounded-[2.5rem] overflow-hidden">
+        <header class="bg-gradient-to-r from-yellow-400 to-amber-400 p-5 text-center border-b-4 border-yellow-500 shadow-inner">
+            <h1 class="text-3xl font-extrabold text-amber-950 tracking-wider drop-shadow-sm">✨ English Rec Star ✨</h1>
+            <p class="text-xs text-amber-900 font-bold mt-1 bg-white/50 inline-block px-3 py-0.5 rounded-full">🚀 えいご はっぴょう ろくおん アプリ</p>
+        </header>
+
+        <main class="p-6 space-y-6">
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-2xl border-3 border-blue-200 shadow-inner">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-sm font-bold text-indigo-700"><i class="fas fa-file-alt mr-1"></i> 📜 いうこと（カンペ）</label>
+                    <button id="btnListen" class="push-btn shadow-blue-700 bg-blue-500 hover:bg-blue-600 text-white font-bold px-4 py-1.5 rounded-full text-xs transition-all flex items-center gap-1">
+                        <i class="fas fa-volume-up"></i> おてほんをきく
+                    </button>
+                </div>
+                <textarea id="scriptText" class="w-full h-24 p-3 rounded-xl border-2 border-blue-200 focus:border-indigo-400 focus:ring-0 text-lg leading-relaxed bg-white/90 text-gray-700 font-semibold shadow-inner">Hello, everyone! My name is Taro. Today, I'll talk about my favorite food.</textarea>
+            </div>
+
+            <div id="statusDisplay" class="text-center py-1.5 bg-gray-100 rounded-full text-md font-bold text-gray-500 border-2 border-gray-200 shadow-inner">じゅんびは いいかな？ 👍</div>
+
+            <div class="flex flex-col items-center justify-center space-y-3">
+                <button id="btnRecord" class="record-btn w-24 h-24 rounded-full bg-gradient-to-b from-red-400 to-red-500 hover:from-red-500 hover:to-red-600 text-white text-4xl shadow-xl border-4 border-white flex items-center justify-center transition-all transform active:scale-95">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <p id="recordLabel" class="font-extrabold text-gray-600 tracking-wide text-sm bg-white px-4 py-1 rounded-full shadow-sm">おして ろくおんスタート！</p>
+            </div>
+
+            <div id="playerArea" class="hidden space-y-5 pt-4 border-t-4 border-dashed border-gray-200">
+                <div class="flex items-center justify-between gap-3">
+                    <button id="btnPlay" class="push-btn shadow-emerald-700 flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold py-3.5 px-4 rounded-2xl shadow-md flex items-center justify-center gap-2 text-lg">
+                        <i class="fas fa-play-circle text-2xl"></i> きいてみる
+                    </button>
+                    <button id="btnReset" class="push-btn shadow-gray-400 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-3.5 px-5 rounded-2xl">やりなおす</button>
+                </div>
+
+                <div class="bg-purple-50 p-3 rounded-xl border-2 border-purple-200">
+                    <p class="text-xs font-bold text-purple-700 mb-2 ml-1"><i class="fas fa-magic"></i> こえのモードを かえる</p>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button id="pitchNormal" class="push-btn shadow-purple-300 pitch-btn bg-white hover:bg-purple-100 p-2.5 rounded-xl text-sm font-bold border-2 border-purple-400">👨 そのまま</button>
+                        <button id="pitchHigh" class="push-btn shadow-purple-200 pitch-btn bg-white hover:bg-purple-100 p-2.5 rounded-xl text-sm font-bold border-2 border-transparent">🐿 リスさん</button>
+                        <button id="pitchLow" class="push-btn shadow-purple-200 pitch-btn bg-white hover:bg-purple-100 p-2.5 rounded-xl text-sm font-bold border-2 border-transparent">🤖 AIよみ</button>
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button id="sfxSparkle" class="push-btn shadow-pink-300 flex-1 bg-gradient-to-b from-pink-400 to-pink-500 text-white font-bold p-3 rounded-xl text-sm">✨ キラキラ！</button>
+                    <button id="sfxClap" class="push-btn shadow-orange-300 flex-1 bg-gradient-to-b from-orange-400 to-orange-500 text-white font-bold p-3 rounded-xl text-sm">👏 リアルはくしゅ</button>
+                </div>
+            </div>
+        </main>
+
+        <footer class="p-4 bg-gray-50 flex flex-col items-center justify-center border-t-2 border-gray-100 space-y-2">
+            <p id="submitWarning" class="hidden text-xs font-bold text-red-500 bg-red-50 px-4 py-1 rounded-full border border-red-200"><i class="fas fa-exclamation-triangle"></i> せんせいに おくれるのは 【1かい だけ】だよ！よくきいてから おくろう！</p>
+            <button id="btnSubmit" class="hidden push-btn shadow-amber-600 bg-gradient-to-b from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-amber-950 font-extrabold py-4 px-12 rounded-full text-xl tracking-wider">
+                せんせいに おくる！ 🚀
+            </button>
+        </footer>
+    </div>
+
+    <div id="modal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-6 z-50">
+        <div class="bg-white rounded-[2rem] p-8 max-w-sm w-full text-center space-y-4 border-4 border-yellow-400 shadow-2xl">
+            <div id="modalIcon" class="text-6xl">✨</div>
+            <h2 id="modalTitle" class="text-2xl font-bold text-gray-800">やったね！</h2>
+            <p id="modalMessage" class="text-gray-600 font-semibold">せんせいに はっぴょうを おくったよ！</p>
+            <button id="btnModalClose" class="w-full push-btn shadow-blue-700 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3.5 rounded-xl text-md">OK!</button>
+        </div>
+    </div>
+
+    <script>
+        let mediaRecorder; let audioChunks = []; let audioBlob; let audioContext; let audioBuffer; let currentPitch = 1.0; let isRecording = false;
+        let hasSubmitted = false;
+        
+        const btnRecord = document.getElementById('btnRecord'); const btnPlay = document.getElementById('btnPlay'); const btnListen = document.getElementById('btnListen'); const scriptText = document.getElementById('scriptText'); const playerArea = document.getElementById('playerArea'); const statusDisplay = document.getElementById('statusDisplay'); const btnSubmit = document.getElementById('btnSubmit'); const btnReset = document.getElementById('btnReset'); const btnModalClose = document.getElementById('btnModalClose'); const submitWarning = document.getElementById('submitWarning');
+
+        btnListen.onclick = () => {
+            const uttr = new SpeechSynthesisUtterance(scriptText.value);
+            uttr.lang = 'en-US'; uttr.rate = 0.85;
+            speechSynthesis.speak(uttr); showSparkles(10);
+        };
+
+        btnRecord.onclick = async () => { if (!isRecording) { startRecording(); } else { stopRecording(); } };
+
+        async function startRecording() {
+            audioChunks = [];
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+                mediaRecorder.onstop = async () => {
+                    audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const arrayBuffer = await audioBlob.arrayBuffer();
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                    playerArea.classList.remove('hidden');
+                    if (!hasSubmitted) {
+                        btnSubmit.classList.remove('hidden');
+                        submitWarning.classList.remove('hidden');
+                    }
+                    statusDisplay.innerText = "じょうずに できたかな？ 🥰";
+                    statusDisplay.className = "text-center py-1.5 bg-emerald-50 rounded-full text-md font-bold text-emerald-600 border-2 border-emerald-200 shadow-inner";
+                };
+                mediaRecorder.start(); isRecording = true;
+                btnRecord.classList.add('recording'); btnRecord.innerHTML = '<i class="fas fa-stop"></i>';
+                statusDisplay.innerText = "🎤 ろくおんちゅう...";
+                statusDisplay.className = "text-center py-1.5 bg-red-50 rounded-full text-md font-bold text-red-500 border-2 border-red-200 shadow-inner";
+                document.getElementById('recordLabel').innerText = "おして ろくおんを とめる";
+            } catch (err) { alert("マイクがみつかりません。マイクを許可してね！"); }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop(); isRecording = false;
+                btnRecord.classList.remove('recording'); btnRecord.innerHTML = '<i class="fas fa-microphone"></i>';
+                document.getElementById('recordLabel').innerText = "おして ろくおんスタート！";
+            }
+        }
+
+        btnPlay.onclick = () => {
+            if (!audioBuffer) return;
+            const source = audioContext.createBufferSource();
+            source.buffer = audioBuffer; source.playbackRate.value = currentPitch;
+            source.connect(audioContext.destination); source.start(0);
+            statusDisplay.innerText = "🎵 さいせいちゅう！";
+            source.onended = () => { statusDisplay.innerText = "ききおわったよ！ 🌈"; };
+        };
+
+        function changePitch(rate, targetBtn) {
+            currentPitch = rate;
+            const buttons = document.querySelectorAll('.pitch-btn');
+            buttons.forEach(btn => btn.classList.remove('border-purple-400'));
+            buttons.forEach(btn => btn.classList.add('border-transparent'));
+            targetBtn.classList.remove('border-transparent'); targetBtn.classList.add('border-purple-400');
+        }
+        document.getElementById('pitchNormal').onclick = (e) => changePitch(1.0, e.currentTarget);
+        document.getElementById('pitchHigh').onclick = (e) => changePitch(1.4, e.currentTarget);
+        document.getElementById('pitchLow').onclick = (e) => changePitch(0.85, e.currentTarget);
+
+        // 💡 先生の最新のGASのURLをここに貼り付けます
+        const gasUrl = "https://script.google.com/a/macros/tokushima-ec.ed.jp/s/AKfycbysBx47asgqF5NOdXzIx0WyN--Iu8pHm7FRvkBNlP6xx1-3YTw8OmQpTrBrVIa9Id2T/exec";
+
+        btnSubmit.onclick = async () => {
+            if (hasSubmitted) return;
+            
+            // ★【追加機能】ボタンを押したときに、パッと名前を入れる入力欄（ポップアップ）を出す
+            const nameInput = prompt("せんせいに おくるよ！\n【出席番号 と なまえ】を いれてね。\n(れい：3番 ふじの たろう)");
+            
+            // キャンセルボタンを押すか、何も書かずにOKした場合は送信をストップする
+            if (nameInput === null) return;
+            if (nameInput.trim() === "") {
+                alert("なまえを いれないと せんせいに おくれないよ！");
+                return;
+            }
+            
+            statusDisplay.innerText = "⏳ せんせいに おくっているよ...";
+            try {
+                const reader = new FileReader();
+                reader.readAsDataURL(audioBlob);
+                reader.onloadend = async () => {
+                    const base64String = reader.result.split(',')[1];
+                    // 名前（nameInput）も一緒にGASへ発送する
+                    const payload = { audio: base64String, script: scriptText.value, name: nameInput };
+                    
+                    await fetch(gasUrl, {
+                        method: "POST",
+                        mode: "no-cors",
+                        headers: { "Content-Type": "text/plain" },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    hasSubmitted = true;
+                    btnSubmit.classList.add('hidden');
+                    submitWarning.classList.add('hidden');
+                    
+                    showModal("✨ おめでとう！ ✨", nameInput + " さんの はっぴょうを おくったよ！<br>もう2かいめは おくれないからね！👍");
+                    statusDisplay.innerText = "せんせいに おくりおわったよ！ 🥇";
+                    statusDisplay.className = "text-center py-1.5 bg-blue-50 rounded-full text-md font-bold text-blue-600 border-2 border-blue-200 shadow-inner";
+                };
+            } catch (err) { alert("おくるのにおちちゃったみたい。でもマイクは動いてるよ！"); }
+        };
+
+        btnReset.onclick = () => {
+            playerArea.classList.add('hidden'); btnSubmit.classList.add('hidden'); submitWarning.classList.add('hidden');
+            statusDisplay.innerText = "じゅんびは いいかな？ 👍";
+            statusDisplay.className = "text-center py-1.5 bg-gray-100 rounded-full text-md font-bold text-gray-500 border-2 border-gray-200 shadow-inner";
+        };
+
+        document.getElementById('sfxSparkle').onclick = () => { showSparkles(40); if (audioContext) { const now = audioContext.currentTime; for (let i = 0; i < 8; i++) { const osc = audioContext.createOscillator(); const gain = audioContext.createGain(); osc.connect(gain); gain.connect(audioContext.destination); osc.type = 'sine'; osc.frequency.setValueAtTime(1200 + (i * 200), now + (i * 0.05)); gain.gain.setValueAtTime(0.05, now + (i * 0.05)); gain.gain.exponentialRampToValueAtTime(0.001, now + (i * 0.05) + 0.3); osc.start(now + (i * 0.05)); osc.stop(now + (i * 0.05) + 0.3); } } };
+        document.getElementById('sfxClap').onclick = () => { showSparkles(20); if (audioContext) { const bufferSize = audioContext.sampleRate * 1.5; const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate); const data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; } const now = audioContext.currentTime; for (let i = 0; i < 40; i++) { const noiseNode = audioContext.createBufferSource(); noiseNode.buffer = buffer; const filter = audioContext.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.value = 1000 + Math.random() * 1200; filter.Q.value = 4; const gain = audioContext.createGain(); const startTime = now + (Math.random() * 1.2); noiseNode.connect(filter); filter.connect(gain); gain.connect(audioContext.destination); gain.gain.setValueAtTime(0, startTime); gain.gain.linearRampToValueAtTime(0.15, startTime + 0.01); gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.08 + Math.random()*0.1); noiseNode.start(startTime); noiseNode.stop(startTime + 0.2); } } };
+
+        function showSparkles(count = 15) { const emojis = ['⭐', '✨', '🎈', '💖', '🌈', '🎨']; for (let i = 0; i < count; i++) { const s = document.createElement('div'); s.className = 'sparkle'; s.innerHTML = emojis[Math.floor(Math.random() * emojis.length)]; s.style.left = Math.random() * 100 + 'vw'; s.style.top = Math.random() * 100 + 'vh'; s.style.setProperty('--tw-translate-x', (Math.random() - 0.5) * 300 + 'px'); s.style.setProperty('--tw-translate-y', (Math.random() - 0.5) * 300 + 'px'); document.body.appendChild(s); setTimeout(() => s.remove(), 1200); } }
+        function showModal(title, msg) { document.getElementById('modalTitle').innerText = title; document.getElementById('modalMessage').innerHTML = msg; document.getElementById('modal').classList.remove('hidden'); showSparkles(30); }
+        btnModalClose.onclick = () => { document.getElementById('modal').classList.add('hidden'); };
+    </script>
+</body>
+</html>
