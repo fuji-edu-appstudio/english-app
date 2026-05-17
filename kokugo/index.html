@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5年松組 お昼の校内放送ラジオ局</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap');
+        body {
+            font-family: 'Kosugi+Maru', sans-serif;
+            background: linear-gradient(-45deg, #a1c4fd 0%, #c2e9fb 50%, #e0c3fc 100%);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            touch-action: manipulation;
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .fancy-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 6px solid #3b82f6;
+            box-shadow: 0 20px 0px rgba(0, 0, 0, 0.05), inset 0 -8px 0px rgba(0,0,0,0.1);
+        }
+        .push-btn { transition: all 0.1s ease; box-shadow: 0 8px 0px var(--tw-shadow-color); }
+        .push-btn:active { transform: translateY(6px); box-shadow: 0 2px 0px var(--tw-shadow-color); }
+        .record-btn.recording { animation: pulse 1.2s infinite; background-color: #ef4444 !important; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.08); box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); } 100% { transform: scale(1); } }
+        .sparkle { position: absolute; pointer-events: none; animation: fly 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards; z-index: 100; }
+        @keyframes fly { 0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; } 100% { transform: translate(var(--tw-translate-x), var(--tw-translate-y)) scale(0) rotate(360deg); opacity: 0; } }
+    </style>
+</head>
+<body class="min-h-screen p-3 md:p-6 flex items-center justify-center">
+
+    <div id="app" class="fancy-card w-full max-w-xl rounded-[2.5rem] overflow-hidden">
+        <header class="bg-gradient-to-r from-blue-500 to-indigo-600 p-5 text-center border-b-4 border-blue-700 shadow-inner">
+            <h1 class="text-3xl font-extrabold text-white tracking-wider drop-shadow-sm">🎙️ 5年松組 ラジオ局 📻</h1>
+            <p class="text-xs text-blue-100 font-bold mt-1 bg-black/20 inline-block px-4 py-1 rounded-full">💬 国語「きいて、きいて、きいてみよう」録音アプリ</p>
+        </header>
+
+        <main class="p-6 space-y-6">
+            <div class="bg-slate-900 text-center p-4 rounded-2xl border-4 border-slate-700 shadow-inner">
+                <p class="text-xs font-bold text-slate-400 tracking-widest uppercase mb-1">⏱️ ろくおん じかん（記録係チェック！）</p>
+                <div id="timerDisplay" class="text-5xl font-mono font-bold text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.5)]">00:00</div>
+            </div>
+
+            <div id="statusDisplay" class="text-center py-1.5 bg-gray-100 rounded-full text-md font-bold text-gray-500 border-2 border-gray-200 shadow-inner">3にんの じゅんびは いいかな？ 🗣️</div>
+
+            <div class="flex flex-col items-center justify-center space-y-3">
+                <button id="btnRecord" class="record-btn w-24 h-24 rounded-full bg-gradient-to-b from-red-400 to-red-500 hover:from-red-500 hover:to-red-600 text-white text-4xl shadow-xl border-4 border-white flex items-center justify-center transition-all transform active:scale-95">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <p id="recordLabel" class="font-extrabold text-gray-600 tracking-wide text-sm bg-white px-4 py-1 rounded-full shadow-sm">おして インタビュースタート！</p>
+            </div>
+
+            <div id="playerArea" class="hidden space-y-5 pt-4 border-t-4 border-dashed border-gray-200">
+                <div class="flex items-center justify-between gap-3">
+                    <button id="btnPlay" class="push-btn shadow-emerald-700 flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold py-3.5 px-4 rounded-2xl shadow-md flex items-center justify-center gap-2 text-lg">
+                        <i class="fas fa-play-circle text-2xl"></i> ばんぐみを きいてみる
+                    </button>
+                    <button id="btnReset" class="push-btn shadow-gray-400 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-3.5 px-5 rounded-2xl">とりなおす</button>
+                </div>
+
+                <div class="bg-indigo-50 p-4 rounded-2xl border-2 border-indigo-100 space-y-3">
+                    <p class="text-xs font-bold text-indigo-700 ml-1"><i class="fas fa-music"></i> ラジオの こうかおん（きゅうしょくの じかんに ならしきろう！）</p>
+                    <div class="flex gap-3">
+                        <button id="sfxSparkle" class="push-btn shadow-pink-300 flex-1 bg-gradient-to-b from-pink-400 to-pink-500 text-white font-bold p-3 rounded-xl text-sm">🔔 はじまりの合図</button>
+                        <button id="sfxClap" class="push-btn shadow-orange-300 flex-1 bg-gradient-to-b from-orange-400 to-orange-500 text-white font-bold p-3 rounded-xl text-sm">👏 みんなで拍手！</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="p-4 bg-gray-50 flex flex-col items-center justify-center border-t-2 border-gray-100 space-y-2">
+            <p id="submitWarning" class="hidden text-xs font-bold text-red-500 bg-red-50 px-4 py-1 rounded-full border border-red-200"><i class="fas fa-exclamation-triangle"></i> ほぞんできるのは 【1かい だけ】だよ！よく確認してから ほぞんしよう！</p>
+            <button id="btnDownload" class="hidden push-btn shadow-blue-600 bg-gradient-to-b from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-extrabold py-4 px-12 rounded-full text-xl tracking-wider">
+                端末（パソコン）にほぞんする！ 💾
+            </button>
+        </footer>
+    </div>
+
+    <div id="modal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-6 z-50">
+        <div class="bg-white rounded-[2rem] p-8 max-w-sm w-full text-center space-y-4 border-4 border-blue-400 shadow-2xl">
+            <div id="modalIcon" class="text-6xl">🎉</div>
+            <h2 id="modalTitle" class="text-2xl font-bold text-gray-800">保存ができたよ！</h2>
+            <div id="modalMessage" class="text-gray-600 font-semibold text-sm leading-relaxed"></div>
+            <button id="btnModalClose" class="w-full push-btn shadow-blue-700 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3.5 rounded-xl text-md">OK!</button>
+        </div>
+    </div>
+
+    <script>
+        let mediaRecorder; let audioChunks = []; let audioBlob; let audioContext; let audioBuffer; let isRecording = false;
+        let hasDownloaded = false; let timerInterval; let secondsElapsed = 0;
+        
+        const btnRecord = document.getElementById('btnRecord'); const btnPlay = document.getElementById('btnPlay'); const playerArea = document.getElementById('playerArea'); const statusDisplay = document.getElementById('statusDisplay'); const btnDownload = document.getElementById('btnDownload'); const btnReset = document.getElementById('btnReset'); const btnModalClose = document.getElementById('btnModalClose'); const submitWarning = document.getElementById('submitWarning'); const timerDisplay = document.getElementById('timerDisplay');
+
+        btnRecord.onclick = async () => { if (!isRecording) { startRecording(); } else { stopRecording(); } };
+
+        function updateTimer() {
+            secondsElapsed++;
+            const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+            const secs = String(secondsElapsed % 60).padStart(2, '0');
+            timerDisplay.innerText = `${mins}:${secs}`;
+        }
+
+        async function startRecording() {
+            audioChunks = []; secondsElapsed = 0; timerDisplay.innerText = "00:00";
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+                mediaRecorder.onstop = async () => {
+                    clearInterval(timerInterval);
+                    audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const arrayBuffer = await audioBlob.arrayBuffer();
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                    playerArea.classList.remove('hidden');
+                    if (!hasDownloaded) {
+                        btnDownload.classList.remove('hidden');
+                        submitWarning.classList.remove('hidden');
+                    }
+                    statusDisplay.innerText = "バッチリ 録音できたかな？ 📻";
+                    statusDisplay.className = "text-center py-1.5 bg-emerald-50 rounded-full text-md font-bold text-emerald-600 border-2 border-emerald-200 shadow-inner";
+                };
+                mediaRecorder.start(); isRecording = true;
+                timerInterval = setInterval(updateTimer, 1000);
+                btnRecord.classList.add('recording'); btnRecord.innerHTML = '<i class="fas fa-stop"></i>';
+                statusDisplay.innerText = "🎙️ オンエア中（本番録音中！）...";
+                statusDisplay.className = "text-center py-1.5 bg-red-50 rounded-full text-md font-bold text-red-500 border-2 border-red-200 shadow-inner";
+                document.getElementById('recordLabel').innerText = "おして インタビューをおわる";
+            } catch (err) { alert("マイクへのアクセスを 許可してね！"); }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop(); isRecording = false;
+                btnRecord.classList.remove('recording'); btnRecord.innerHTML = '<i class="fas fa-microphone"></i>';
+                document.getElementById('recordLabel').innerText = "おして インタビュースタート！";
+            }
+        }
+
+        btnPlay.onclick = () => {
+            if (!audioBuffer) return;
+            const source = audioContext.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(audioContext.destination); source.start(0);
+            statusDisplay.innerText = "🎵 番組を 再生しているよ！";
+            source.onended = () => { statusDisplay.innerText = "聞きおわったよ！ 🌈"; };
+        };
+
+        // 📥 3人の役割ごとの名前を入力させてダウンロードする処理
+        btnDownload.onclick = () => {
+            if (hasDownloaded) return;
+            
+            const groupNum = prompt("【はんの番号】を いれてね。\n(れい：3はん)");
+            if (groupNum === null || groupNum.trim() === "") { alert("はんの番号を いれてね！"); return; }
+
+            const talker = prompt("【話し手】の なまえを いれてね。\n(れい：おの)");
+            if (talker === null || talker.trim() === "") { alert("話し手の なまえを いれてね！"); return; }
+
+            const listener = prompt("【聞き手】の なまえを いれてね。\n(れい：ふじの)");
+            if (listener === null || listener.trim() === "") { alert("聞き手の なまえを いれてね！"); return; }
+
+            const recorder = prompt("【記録係】の なまえを いれてね。\n(れい：たなか)");
+            if (recorder === null || recorder.trim() === "") { alert("記録係の なまえを いれてね！"); return; }
+            
+            const now = new Date();
+            const yyyymmdd = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
+            const hhmmss = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
+            
+            // 💡 3人の役割が入った完璧なファイル名が作られます！
+            const filename = `${groupNum}_話(${talker})_聞(${listener})_記(${recorder})_${yyyymmdd}_${hhmmss}.wav`;
+            
+            const url = URL.createObjectURL(audioBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            hasDownloaded = true;
+            btnDownload.classList.add('hidden');
+            submitWarning.classList.add('hidden');
+            
+            showModal("💾 ラジオ番組を保存したよ！", `<strong>${groupNum}</strong> の番組ファイルを パソコンに ほぞんしたよ！<br><br>【出演メンバー】<br>👨‍💼話し手：${talker} さん<br>🎤聞き手：${listener} さん<br>📝記録係：${recorder} さん<br><br><span class="text-red-500 font-bold">⚠️このあと、Google Classroomから 先生に このファイルを 送ってね！</span>`);
+            statusDisplay.innerText = "パソコンに ほぞんしたよ！クラスルームで おくってね！ 🥇";
+            statusDisplay.className = "text-center py-1.5 bg-blue-50 rounded-full text-md font-bold text-blue-600 border-2 border-blue-200 shadow-inner";
+        };
+
+        btnReset.onclick = () => {
+            playerArea.classList.add('hidden'); btnDownload.classList.add('hidden'); submitWarning.classList.add('hidden');
+            secondsElapsed = 0; timerDisplay.innerText = "00:00";
+            statusDisplay.innerText = "3にんの じゅんびは いいかな？ 👍";
+            statusDisplay.className = "text-center py-1.5 bg-gray-100 rounded-full text-md font-bold text-gray-500 border-2 border-gray-200 shadow-inner";
+        };
+
+        // 効果音（チャイムと拍手）
+        document.getElementById('sfxSparkle').onclick = () => { showSparkles(40); if (audioContext) { const now = audioContext.currentTime; for (let i = 0; i < 8; i++) { const osc = audioContext.createOscillator(); const gain = audioContext.createGain(); osc.connect(gain); gain.connect(audioContext.destination); osc.type = 'sine'; osc.frequency.setValueAtTime(800 + (i * 150), now + (i * 0.06)); gain.gain.setValueAtTime(0.05, now + (i * 0.06)); gain.gain.exponentialRampToValueAtTime(0.001, now + (i * 0.06) + 0.4); osc.start(now + (i * 0.06)); osc.stop(now + (i * 0.06) + 0.4); } } };
+        document.getElementById('sfxClap').onclick = () => { showSparkles(20); if (audioContext) { const bufferSize = audioContext.sampleRate * 1.5; const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate); const data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; } const now = audioContext.currentTime; for (let i = 0; i < 40; i++) { const noiseNode = audioContext.createBufferSource(); noiseNode.buffer = buffer; const filter = audioContext.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.value = 1000 + Math.random() * 1200; filter.Q.value = 4; const gain = audioContext.createGain(); const startTime = now + (Math.random() * 1.2); noiseNode.connect(filter); filter.connect(gain); gain.connect(audioContext.destination); gain.gain.setValueAtTime(0, startTime); gain.gain.linearRampToValueAtTime(0.15, startTime + 0.01); gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.08 + Math.random()*0.1); noiseNode.start(startTime); noiseNode.stop(startTime + 0.2); } } };
+
+        function showSparkles(count = 15) { const emojis = ['⭐', '✨', '🎈', '🎵', '📻', '💬']; for (let i = 0; i < count; i++) { const s = document.createElement('div'); s.className = 'sparkle'; s.innerHTML = emojis[Math.floor(Math.random() * emojis.length)]; s.style.left = Math.random() * 100 + 'vw'; s.style.top = Math.random() * 100 + 'vh'; s.style.setProperty('--tw-translate-x', (Math.random() - 0.5) * 300 + 'px'); s.style.setProperty('--tw-translate-y', (Math.random() - 0.5) * 300 + 'px'); document.body.appendChild(s); setTimeout(() => s.remove(), 1200); } }
+        function showModal(title, msg) { document.getElementById('modalTitle').innerText = title; document.getElementById('modalMessage').innerHTML = msg; document.getElementById('modal').classList.remove('hidden'); showSparkles(30); }
+        btnModalClose.onclick = () => { document.getElementById('modal').classList.add('hidden'); };
+    </script>
+</body>
+</html>
